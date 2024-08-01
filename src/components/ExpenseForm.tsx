@@ -55,10 +55,10 @@ export default function ExpenseForm() {
 
         //validar que no pase del limite
 
-        if(expense.amount > saldoDisponible){
-          setError("Ese gasto se sale del presupuesto")
-          return 
-      }
+        if( (expense.amount - previousAmount) > saldoDisponible  ) {
+          setError('Ese gasto se sale del presupuesto')
+          return
+      } 
 
         //Agregar o actualizar un nuevo gasto
         if(state.editingId){
