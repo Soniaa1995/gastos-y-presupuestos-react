@@ -1,5 +1,5 @@
 import { categories } from "../data/categories";
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import type { DraftExpense, Value } from "../types";
 import DatePicker from 'react-date-picker';
 import 'react-date-picker/dist/DatePicker.css'
@@ -24,7 +24,14 @@ export default function ExpenseForm() {
     }
 
     const [error, setError] = useState('')
-    const {dispatch} = useBudget()
+    const {dispatch, state} = useBudget()
+
+    useEffect(() => {
+      if(state.editingId){
+        const editingExpense = state.expenses.filter(currentExpense => currentExpense.id === state.editingId)[0]
+        setExpense(editingExpense)
+      }
+    }, [state.editingId])
 
     const handleChange = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>) => {
         const {name, value} = e.target
@@ -44,9 +51,13 @@ export default function ExpenseForm() {
             return //con return hace que no se ejecuten las siguientes lineas del submit
         }
 
-        //Agregar un nuevo gasto
-        dispatch({type: 'add-expense', payload: {expense}})
-
+        //Agregar o actualizar un nuevo gasto
+        if(state.editingId){
+          dispatch({type: 'update-expense', payload: {expense: {id: state.editingId, ...expense}}})
+        }else {
+          dispatch({type: 'add-expense', payload: {expense}}) //agregar
+        }
+        
         //reiniciar el state
 
         setExpense({
@@ -60,7 +71,7 @@ export default function ExpenseForm() {
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       <legend className="uppercase text-center text-2xl font-bold border-b-4 border-blue-500 py-2">
-        Nuevo Gasto
+        {state.editingId ? 'Guardar Cambios' : 'Nuevo Gasto'}
       </legend>
 
       {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -136,7 +147,7 @@ export default function ExpenseForm() {
         <input 
             type="submit"
             className="bg-blue-600 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg" 
-            value={'Registrar Gasto'}
+            value={state.editingId ? 'Guardar Cambios' : 'Registrar Gasto'}
         />
 
     </form>
